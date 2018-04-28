@@ -38,18 +38,21 @@ class Request extends Component {
     }).then(function (response) {
         console.log(response.data) ;
         var arr = [] ; 
-        for(var i = 0 ; i < Object.keys(response.data).length ;i++){
-            var fee = response.data[i] ;
+        var total = 0;
+        response.data.fees.map(fee => {
             arr.push({
                 feeId: fee.fee_id,
-                feeType: fee.type, 
-                feeDept: fee.department_id, 
+                feeType: fee.type,
+                feeDept: fee.department_id,
                 feeCost: fee.cost,
-                feeYear: fee.year, 
-            }) ;  
-        }
-
-        that.setState({feeList:arr});
+                feeYear: fee.year,
+            }); 
+            total += fee.cost;
+        });
+        that.setState({
+            feeList: arr,
+            total: total
+        });
         
     }).catch(function (err) {
         console.error(err);
@@ -60,31 +63,31 @@ class Request extends Component {
   render() {
 
     const listItems = this.state.feeList.map(
-                        function(object) {
-                            return (
-                                <TableRow>
-                                    <TableRowColumn>{object.feeType}</TableRowColumn>
-                                    <TableRowColumn>{object.feeYear}</TableRowColumn>
-                                    <TableRowColumn>{object.feeCost}</TableRowColumn>
-                                </TableRow>
-                            );
-                         });
+        function(object) {
+            return (
+                <TableRow>
+                    <TableRowColumn>{object.feeType}</TableRowColumn>
+                    <TableRowColumn>{object.feeYear}</TableRowColumn>
+                    <TableRowColumn>{object.feeCost}</TableRowColumn>
+                </TableRow>
+            );
+        });
 
     return (
         <Table >
-            <TableHeader  >
+            <TableHeader displaySelectAll={false}>
                 <TableRow>
-                    <TableHeaderColumn>ID</TableHeaderColumn>
-                    <TableHeaderColumn>Name</TableHeaderColumn>
-                    <TableHeaderColumn>Status</TableHeaderColumn>
+                    <TableHeaderColumn>Type</TableHeaderColumn>
+                    <TableHeaderColumn>Registered In</TableHeaderColumn>
+                    <TableHeaderColumn>Cost</TableHeaderColumn>
                 </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody displayRowCheckbox={false}>
                 {listItems}
                 <TableRow>
-                    <TableRowColumn>-</TableRowColumn>
-                    <TableRowColumn>-</TableRowColumn>
-                    <TableRowColumn>-</TableRowColumn>
+                    <TableRowColumn><b>TOTAL</b></TableRowColumn>
+                    <TableRowColumn></TableRowColumn>
+                    <TableRowColumn><b>{this.state.total}</b></TableRowColumn>
                 </TableRow>
             </TableBody>
         </Table>
