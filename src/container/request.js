@@ -39,19 +39,23 @@ class Request extends Component {
         requests: []
     };
 
+    componentDidMount() {
+        axios.get('http://127.0.0.1:3000' + `/student/request/?token=${this.cookies.get('token')}`).then((docs) => {
+            this.setState({requests: docs.data.requests});
+        })
+    }
+
     onSubmit = () => {
-        console.log('token: ',  this.cookies.get('token'));
         const localhost = 'http://127.0.0.1:3000';
         axios.post(localhost + `/student/request/?token=${this.cookies.get('token')}`,{
             type: this.state.selectedValue,
         }).then( (result) =>{
-            console.log(result);
+            console.log('result: ',result)
             console.log('added request, updating requests');
-            axios.get(localhost + '/student/request').then((docs) => {
-                this.setState({requests: docs});
+            axios.get(localhost + `/student/request/?token=${this.cookies.get('token')}`).then((docs) => {
+                this.setState({requests: docs.data.requests});
             })
         });
-        console.log(this.state.selectedValue)
     }
 
   render() {
@@ -93,7 +97,7 @@ class Request extends Component {
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
                         {
-                            (this.state.requests).map((request) => {
+                            this.state.requests.map((request) => {
                                 return (
                                     <TableRow>
                                         <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{request.request_id}</TableRowColumn>
