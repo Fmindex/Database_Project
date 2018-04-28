@@ -11,6 +11,10 @@ import {
 
 import Divider from 'material-ui/Divider';
 import RaisedButton from 'material-ui/RaisedButton';
+import axios from 'axios';
+import { print } from 'util';
+import Cookies from 'universal-cookie';
+
 
 const styles = {
     block: {
@@ -27,11 +31,26 @@ const styles = {
 const titleFontSize = '18px';
 const contentFontSize = '18px';
 class Request extends Component {
+
+    cookies = new Cookies();
+
     state = {
         selectedValue: null,
+        requests: []
     };
 
     onSubmit = () => {
+        console.log('token: ',  this.cookies.get('token'));
+        const localhost = 'http://127.0.0.1:3000';
+        axios.post(localhost + `/student/request/?token=${this.cookies.get('token')}`,{
+            type: this.state.selectedValue,
+        }).then( (result) =>{
+            console.log(result);
+            console.log('added request, updating requests');
+            axios.get(localhost + '/student/request').then((docs) => {
+                this.setState({requests: docs});
+            })
+        });
         console.log(this.state.selectedValue)
     }
 
@@ -70,17 +89,15 @@ class Request extends Component {
                         <TableRow>
                             <TableHeaderColumn style={{ fontSize: titleFontSize, width: '20%' }}>No.</TableHeaderColumn>
                             <TableHeaderColumn style={{ fontSize: titleFontSize, width: '50%' }}>Request Type</TableHeaderColumn>
-                            <TableHeaderColumn style={{ fontSize: titleFontSize, width: '30%' }}>Date</TableHeaderColumn>
                         </TableRow>
                     </TableHeader>
                     <TableBody displayRowCheckbox={false}>
                         {
-                            [1, 2, 3, 4].map((element) => {
+                            (this.state.requests).map((request) => {
                                 return (
                                     <TableRow>
-                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{element}</TableRowColumn>
-                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '50%' }}>{element % 2 ? 'Transcript' : 'ใบรับรอง'}</TableRowColumn>
-                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '30%' }}>{element + ' JAN 2018'}</TableRowColumn>
+                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{request.request_id}</TableRowColumn>
+                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '50%' }}>{request.type}</TableRowColumn>
                                     </TableRow>
                                 )
                             })
