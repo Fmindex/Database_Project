@@ -154,6 +154,7 @@ class DashboardStudent extends Component {
       },
     ],
     selectedSubject: [],
+    oldSelectedSubject: [],
     allSubjects: [],
   };
 
@@ -178,8 +179,15 @@ class DashboardStudent extends Component {
     let copy = this.state.selectedSubject;
 
     copyAllSubject[index].onList = available;
-    if(available) {
-      copy.push(copyAllSubject[index]);
+
+    let totalCredit = 0;
+    this.state.selectedSubject.map(subject => {
+      if (subject.grade != 'W') totalCredit += subject.credit;
+    });
+    totalCredit += copyAllSubject[index].credit;
+
+    if(totalCredit > 22) alert('Your credits are running out!');
+    else if(available) {
       let body = {
         course_id: copyAllSubject[index].courseNo,
         section_id: copyAllSubject[index].section_id,
@@ -187,11 +195,14 @@ class DashboardStudent extends Component {
         semester: copyAllSubject[index].semester,
       };
       axios.post('http://localhost:3000/student/register/add?token=' + this.cookies.get('token'), body).then((res) => {
-        console.log(res)
-        this.setState({
-          selectedSubject: copy,
-          allSubjects: copyAllSubject,
-        }, this.createClass);
+        console.log(res.data);
+        if(res.data == 'OK') {
+          copy.push(copyAllSubject[index]);
+          this.setState({
+            selectedSubject: copy,
+            allSubjects: copyAllSubject,
+          }, this.createClass);
+        }
       })
     }
   }
@@ -217,7 +228,14 @@ class DashboardStudent extends Component {
   }
 
   createClass = () => {
-    let subj = this.state.selectedSubject;
+    let subj = [];
+    let subSe = this.state.selectedSubject;
+    subSe.map((sub) => {
+      if(sub.grade != 'W') {
+        subj.push(sub);
+      }
+    })
+    console.log(subj)
     let copyClass = [[],[],[],[],[],[],[],[]];
 
     for(var day = 0; day < 8; day++){
@@ -286,7 +304,7 @@ class DashboardStudent extends Component {
     axios.post('http://localhost:3000/student/register/withdraw?token=' + this.cookies.get('token'), body).then((res) => {
       console.log(res.data);
       copyAllSubject[index].grade = 'W';
-      this.setState({ selectedSubject: copyAllSubject });
+      this.setState({ selectedSubject: copyAllSubject }, this.createClass);
     });
   };
 
@@ -297,52 +315,54 @@ class DashboardStudent extends Component {
       let courses = res.data.courses;
       let subjects = [];
       courses.map((course, index) => {
-        
 
         course.sections.map(section => {
-
-          let subject = {
-            courseNo: course.course_id,
-            name: course.name + ' - ' + section.section_id,
-            time: [],
-            index: index,
-            section_id: section.section_id,
-            year: section.year,
-            semester: section.semester,
-            onList: false,
-          };
-          section.time_slots.map(slot => {
-            let starts = slot.start_time.split(':');
-            let ends = slot.end_time.split(':');
-            let day = -1;
-            if (slot.day === 'monday') day = 1;
-            else if (slot.day === 'tuesday') day = 2;
-            else if (slot.day === 'wednesday') day = 3;
-            else if (slot.day === 'thursday') day = 4;
-            else if (slot.day === 'friday') day = 5;
-            subject.time.push({
-              start: parseInt(starts[0]) * 100 + parseInt(starts[1]) / 30 * 50,
-              end: parseInt(ends[0]) * 100 + parseInt(ends[1]) / 30 * 50,
-              day: day,
+          if(section.year == 2017 && section.semester == 2) {
+            
+            let subject = {
+              courseNo: course.course_id,
+              credit: course.credit,
+              name: course.name + ' - ' + section.section_id,
+              time: [],
+              index: subjects.length,
+              section_id: section.section_id,
+              year: section.year,
+              semester: section.semester,
+              onList: false,
+            };
+            section.time_slots.map(slot => {
+              let starts = slot.start_time.split(':');
+              let ends = slot.end_time.split(':');
+              let day = -1;
+              if (slot.day === 'monday') day = 1;
+              else if (slot.day === 'tuesday') day = 2;
+              else if (slot.day === 'wednesday') day = 3;
+              else if (slot.day === 'thursday') day = 4;
+              else if (slot.day === 'friday') day = 5;
+              subject.time.push({
+                start: parseInt(starts[0]) * 100 + parseInt(starts[1]) / 30 * 50,
+                end: parseInt(ends[0]) * 100 + parseInt(ends[1]) / 30 * 50,
+                day: day,
+              });
             });
-          });
 
-          subjects.push(subject);
+            subjects.push(subject);
+          }          
         });
 
         
       });
-      this.setState({ allSubjects: subjects });
+      this.setState({ allSubjects: subjects,  });
     });
 
     axios.get('http://localhost:3000/student/course/all?token=' + this.cookies.get('token')).then(res => {
       
       let courses = res.data.courses;
+      let oldSubjects = [];
       let subjects = [];
 
       courses.map((course, index) => {
         
-
         course.sections.map(section => {
 
           let subject = {
@@ -355,6 +375,7 @@ class DashboardStudent extends Component {
             year: section.year,
             semester: section.semester,
             grade: section.grade,
+            credit: course.credit,
           };
           section.time_slots.map(slot => {
             let starts = slot.start_time.split(':');
@@ -372,12 +393,49 @@ class DashboardStudent extends Component {
             });
           });
 
-          subjects.push(subject);
+
+          if (section.year == '2017' && section.semester == 2) {
+            subjects.push(subject);
+          }
+          oldSubjects.push(subject);
         });
       });
 
-      console.log(subjects);
-      this.setState({ selectedSubject: subjects }, this.createClass);
+      let semesters = [];
+      oldSubjects.map(course => {
+
+        let sem = semesters.find(sem => sem.semester === course.semester && sem.year === course.year);
+        if (sem === undefined) {
+          sem = {
+            year: course.year,
+            semester: course.semester,
+            grade: 0,
+            credit: 0,
+            subjects: [],
+          }
+          semesters.push(sem);
+        }
+        if(course.grade != 'W') {
+          if(course.grade != '-') sem.grade += course.grade * course.credit;
+          sem.credit += course.credit;
+        }
+        sem.subjects.push(course);
+      });
+
+      semesters.sort((A, B) => {
+        let a = '' + A.year + '' + A.semester;
+        let b = '' + B.year + '' + B.semester;
+        return a.localeCompare(b);
+      });
+      let gradeX = 0;
+      let creditX = 0;
+      semesters.map(sem => {
+        gradeX += sem.grade;
+        creditX += sem.credit;
+        sem.gradeX = gradeX;
+        sem.creditX = creditX;
+      });
+      this.setState({ selectedSubject: subjects, oldSelectedSubject: oldSubjects, semesters: semesters }, this.createClass);
     });
   }
 
@@ -409,7 +467,7 @@ class DashboardStudent extends Component {
                   <CardText style={{ height: '78vh', width: '100%' }}>
                       {this.state.selectedPage.name === 'Course' && <SearchPanel withdraw={this.withdraw} subject={this.state.allSubjects} selectedSubject={this.state.selectedSubject} trueOnlist={this.trueOnlist} falseOnlist={this.falseOnlist} />}
                       {this.state.selectedPage.name === 'Schedule' && <Table falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
-                      {this.state.selectedPage.name === 'Grade' && <Grade subject={this.state.subject} />}
+                      {this.state.selectedPage.name === 'Grade' && <Grade subject={this.state.selectedSubject} semesters={this.state.semesters} />}
                       {this.state.selectedPage.name === 'Request' && <Request />}
                   </CardText>
                 }

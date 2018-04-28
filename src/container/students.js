@@ -74,8 +74,10 @@ export default class ListExampleSelectable extends Component {
             }
             student.semesters.push(sem);
           }
-          sem.grade += course.grade * course.credit;
-          sem.credit += course.credit;
+          if (course.grade != 'W') {
+            if (course.grade != '-') sem.grade += course.grade * course.credit;
+            sem.credit += course.credit;
+          }
           sem.subjects.push(course);
         });
 
