@@ -235,8 +235,8 @@ class SearchPanel extends Component {
                                                 <div> WITHDRAWED </div>
                                                 :
                                                 <div>
-                                                    <button onClick={()=> this.props.trueOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
-                                                        {element.grade}
+                                                    <button onClick={()=> this.props.withdraw(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
+                                                        WITHDRAW
                                                     </button>
 
                                                     <button onClick={()=> this.props.falseOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>

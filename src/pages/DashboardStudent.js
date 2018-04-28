@@ -275,6 +275,21 @@ class DashboardStudent extends Component {
     })
   }
 
+  withdraw = (index) => {
+    let copyAllSubject = this.state.selectedSubject;
+    let body = {
+      course_id: copyAllSubject[index].courseNo,
+      section_id: copyAllSubject[index].section_id,
+      year: copyAllSubject[index].year,
+      semester: copyAllSubject[index].semester,
+    };
+    axios.post('http://localhost:3000/student/register/withdraw?token=' + this.cookies.get('token'), body).then((res) => {
+      console.log(res.data);
+      copyAllSubject[index].grade = 'W';
+      this.setState({ selectedSubject: copyAllSubject });
+    });
+  };
+
   componentDidMount() {
     let subjects = [];
     axios.get('http://localhost:3000/course/all').then(res => {
@@ -324,6 +339,7 @@ class DashboardStudent extends Component {
       
       let courses = res.data.courses;
       let subjects = [];
+
       courses.map((course, index) => {
         
 
@@ -358,8 +374,6 @@ class DashboardStudent extends Component {
 
           subjects.push(subject);
         });
-
-        
       });
 
       console.log(subjects);
@@ -393,7 +407,7 @@ class DashboardStudent extends Component {
                   </CardText>
                   :
                   <CardText style={{ height: '78vh', width: '100%' }}>
-                      {this.state.selectedPage.name === 'Course' && <SearchPanel subject={this.state.allSubjects} selectedSubject={this.state.selectedSubject} trueOnlist={this.trueOnlist} falseOnlist={this.falseOnlist} />}
+                      {this.state.selectedPage.name === 'Course' && <SearchPanel withdraw={this.withdraw} subject={this.state.allSubjects} selectedSubject={this.state.selectedSubject} trueOnlist={this.trueOnlist} falseOnlist={this.falseOnlist} />}
                       {this.state.selectedPage.name === 'Schedule' && <Table falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
                       {this.state.selectedPage.name === 'Grade' && <Grade subject={this.state.subject} />}
                       {this.state.selectedPage.name === 'Request' && <Request />}
