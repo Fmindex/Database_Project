@@ -190,21 +190,14 @@ class SearchPanel extends Component {
                         </div>
                         <ul className="list-group">
                             { 
-                                this.state.searchResult.map((element) => { 
+                                this.state.searchResult.map((element, index) => { 
                                     return (
                                         <div className="list-group-item" onClick={() => this.showOnTable()}>
                                             <div className="courseNostyle" > { element.courseNo } </div>
                                             <div className="namestyle" > { element.name } </div>
-                                            { element.onList && 
-                                                <button onClick={()=> this.props.falseOnlist(element.index)} className="checkbuttonstyle">
-                                                    <span className="glyphicon glyphicon-check" style={{ display: 'inline'}} ></span>
-                                                </button>
-                                            }
-                                            { !element.onList && 
-                                                <button onClick={()=> this.props.trueOnlist(element.index)} className="checkbuttonstyle">
-                                                    <span className="glyphicon glyphicon-unchecked" style={{ display: 'inline'}} ></span>
-                                                </button>
-                                            }
+                                            <button onClick={()=> this.props.trueOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black' }}>
+                                                ADD
+                                            </button>
                                             <div className="text-left" > 
                                                 { 
                                                     element.time.map((time) => {
@@ -230,16 +223,27 @@ class SearchPanel extends Component {
                 <div style={{ fontSize: '24px', textDecoration: 'underline' }}>Selected Courses </div>
                 <div style={{ width : '100%', marginTop: '20px'}} >
                     {
-                        this.props.subject.map((element) => {
+                        this.props.selectedSubject.map((element, index) => {
                             return(
                                 <div>
                                     { element.onList==false ? '' :
                                         <div className="row" style={{border: '1px solid lightgray', padding: '10px', margin: '5px'}}>
                                             <div className="courseNostyle" > { element.courseNo } </div>
                                             <div className="namestyle" > { element.name } </div>
-                                            <button onClick={()=> this.props.falseOnlist(element.index)} style={{ float: 'right' }}>
-                                                <span className="glyphicon glyphicon-remove" ></span>
-                                            </button>
+                                            {
+                                                element.grade === 'W' ?
+                                                <div> WITHDRAWED </div>
+                                                :
+                                                <div>
+                                                    <button onClick={()=> this.props.trueOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
+                                                        {element.grade}
+                                                    </button>
+
+                                                    <button onClick={()=> this.props.falseOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
+                                                        REMOVE
+                                                    </button>
+                                                </div>
+                                            }
                                         </div> 
                                     }
                                 </div>

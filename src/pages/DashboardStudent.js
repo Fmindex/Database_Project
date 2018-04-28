@@ -153,12 +153,13 @@ class DashboardStudent extends Component {
         onList: false,
       },
     ],
+    selectedSubject: [],
     allSubjects: [],
   };
 
   trueOnlist = (index) => {
-    let copySubject = this.state.subject[index];
-    let copyAllSubject = this.state.subject;
+    let copySubject = this.state.allSubjects[index];
+    let copyAllSubject = this.state.allSubjects;
     let available = true;
 
     for(var i = 0; i < copySubject.time.length; i++){
@@ -174,25 +175,49 @@ class DashboardStudent extends Component {
         }
       }
     }
+    let copy = this.state.selectedSubject;
 
     copyAllSubject[index].onList = available;
-    this.setState({
-        subject: copyAllSubject,
-    });
-    this.createClass();
+    if(available) {
+      copy.push(copyAllSubject[index]);
+      let body = {
+        course_id: copyAllSubject[index].courseNo,
+        section_id: copyAllSubject[index].section_id,
+        year: copyAllSubject[index].year,
+        semester: copyAllSubject[index].semester,
+      };
+      axios.post('http://localhost:3000/student/register/add?token=' + this.cookies.get('token'), body).then((res) => {
+        console.log(res)
+        this.setState({
+          selectedSubject: copy,
+          allSubjects: copyAllSubject,
+        }, this.createClass);
+      })
+    }
   }
 
   falseOnlist = (index) => {
-    let copySubject = this.state.subject;
-    copySubject[index].onList = false;
-    this.setState({
-        subject: copySubject,
-    });
-    this.createClass();
+    let copySubject = this.state.selectedSubject;
+    let copyAllSubject = this.state.allSubjects;
+    copyAllSubject[index].onList = false;
+    console.log(copySubject);
+    let body = {
+      course_id: copySubject[index].courseNo,
+      section_id: copySubject[index].section_id,
+      year: copySubject[index].year,
+      semester: copySubject[index].semester,
+    };
+    axios.post('http://localhost:3000/student/register/remove?token=' + this.cookies.get('token'), body).then(() => {
+      copySubject.splice(index, 1);
+      this.setState({
+        selectedSubject: copySubject,
+        allSubjects: copyAllSubject,
+      }, this.createClass);
+    })
   }
 
   createClass = () => {
-    let subj = this.state.subject;
+    let subj = this.state.selectedSubject;
     let copyClass = [[],[],[],[],[],[],[],[]];
 
     for(var day = 0; day < 8; day++){
@@ -238,7 +263,7 @@ class DashboardStudent extends Component {
         }
       }
     }
-    
+    console.log(res)
     this.setState({
         classOnTable: res,
     });
@@ -257,15 +282,20 @@ class DashboardStudent extends Component {
       let courses = res.data.courses;
       let subjects = [];
       courses.map((course, index) => {
-        let subject = {
-          courseNo: course.course_id,
-          name: course.name,
-          time: [],
-          index: index,
-          onList: false,
-        };
+        
 
         course.sections.map(section => {
+
+          let subject = {
+            courseNo: course.course_id,
+            name: course.name + ' - ' + section.section_id,
+            time: [],
+            index: index,
+            section_id: section.section_id,
+            year: section.year,
+            semester: section.semester,
+            onList: false,
+          };
           section.time_slots.map(slot => {
             let starts = slot.start_time.split(':');
             let ends = slot.end_time.split(':');
@@ -276,21 +306,64 @@ class DashboardStudent extends Component {
             else if (slot.day === 'thursday') day = 4;
             else if (slot.day === 'friday') day = 5;
             subject.time.push({
-              start: parseInt(starts[0]) * 100 + parseInt(starts[1]),
-              end: parseInt(ends[0]) * 100 + parseInt(ends[1]),
+              start: parseInt(starts[0]) * 100 + parseInt(starts[1]) / 30 * 50,
+              end: parseInt(ends[0]) * 100 + parseInt(ends[1]) / 30 * 50,
               day: day,
             });
           });
+
+          subjects.push(subject);
         });
 
-        subjects.push(subject);
+        
       });
       this.setState({ allSubjects: subjects });
-      this.createClass();
     });
 
-    this.setState({
-      allSubjects: subjects
+    axios.get('http://localhost:3000/student/course/all?token=' + this.cookies.get('token')).then(res => {
+      
+      let courses = res.data.courses;
+      let subjects = [];
+      courses.map((course, index) => {
+        
+
+        course.sections.map(section => {
+
+          let subject = {
+            courseNo: course.course_id,
+            name: course.name + ' - ' + section.section_id,
+            time: [],
+            index: index,
+            onList: true,
+            section_id: section.section_id,
+            year: section.year,
+            semester: section.semester,
+            grade: section.grade,
+          };
+          section.time_slots.map(slot => {
+            let starts = slot.start_time.split(':');
+            let ends = slot.end_time.split(':');
+            let day = -1;
+            if (slot.day === 'monday') day = 1;
+            else if (slot.day === 'tuesday') day = 2;
+            else if (slot.day === 'wednesday') day = 3;
+            else if (slot.day === 'thursday') day = 4;
+            else if (slot.day === 'friday') day = 5;
+            subject.time.push({
+              start: parseInt(starts[0]) * 100 + parseInt(starts[1]) / 30 * 50,
+              end: parseInt(ends[0]) * 100 + parseInt(ends[1]) / 30 * 50,
+              day: day,
+            });
+          });
+
+          subjects.push(subject);
+        });
+
+        
+      });
+
+      console.log(subjects);
+      this.setState({ selectedSubject: subjects }, this.createClass);
     });
   }
 
@@ -320,8 +393,8 @@ class DashboardStudent extends Component {
                   </CardText>
                   :
                   <CardText style={{ height: '78vh', width: '100%' }}>
-                      {this.state.selectedPage.name === 'Course' && <SearchPanel subject={this.state.allSubjects} trueOnlist={this.trueOnlist} falseOnlist={this.falseOnlist} />}
-                      {this.state.selectedPage.name === 'Schedule' && <Table subject={this.state.subject} falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
+                      {this.state.selectedPage.name === 'Course' && <SearchPanel subject={this.state.allSubjects} selectedSubject={this.state.selectedSubject} trueOnlist={this.trueOnlist} falseOnlist={this.falseOnlist} />}
+                      {this.state.selectedPage.name === 'Schedule' && <Table falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
                       {this.state.selectedPage.name === 'Grade' && <Grade subject={this.state.subject} />}
                       {this.state.selectedPage.name === 'Request' && <Request />}
                   </CardText>

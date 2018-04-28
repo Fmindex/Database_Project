@@ -51,7 +51,7 @@ class Table extends Component {
             );
         } else {
             return (
-                <div className="classstyle" style={{width: `${detail.period*5}%`}}>
+                <div className="classstyle" style={{width: `${detail.period*5}%`, fontSize: '14px'}}>
                     { detail.name }
                 </div>
             );
@@ -65,7 +65,7 @@ class Table extends Component {
         return (
 
             <div style={{ width: '100%', height: '100%', padding: '48px' }}>
-                <div className="jumbotron" style={{ width: '100%', height: '100%' }}>
+                <div style={{ width: '100%', height: '100%' }}>
                     <div className="col-sm-12 text-left my-table" >
                         <div className="blackline" />
                         <div className="row" style={{ width: '100%' }} > 
