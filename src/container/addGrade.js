@@ -66,6 +66,9 @@ class ShowList extends Component {
             else if (res.data == 'STUDENT NOT FOUND') {
                 alert('This student not found');
             }
+            else if(res.data == 'OK') {
+                alert('SUCCESS!');
+            }
         });
     }
 

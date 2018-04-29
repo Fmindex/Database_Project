@@ -58,8 +58,8 @@ class Grade extends Component {
                                             }
                                             <TableRow>
                                                 <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '2%'  }}></TableRowColumn>
-                                                <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '49%'  }}>GPA: {sem.grade/sem.credit }</TableRowColumn>
-                                                <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '49%'  }}>GPAX: {sem.gradeX/sem.creditX} </TableRowColumn>
+                                                <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '49%'  }}>GPA: {(sem.grade/sem.credit).toFixed(2) }</TableRowColumn>
+                                                <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '49%'  }}>GPAX: {(sem.gradeX/sem.creditX).toFixed(2)} </TableRowColumn>
                                             </TableRow>
                                         </TableBody>
                                     </Table>

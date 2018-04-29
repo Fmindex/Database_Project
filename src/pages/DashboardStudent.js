@@ -206,6 +206,9 @@ class DashboardStudent extends Component {
         else if(res.data == 'EXIST') {
           alert('You registered this course!');
         }
+        else if(res.data == 'SECTION FULL') {
+          alert('This section full!');
+        }
       });
     }
     else alert('Schedule is overlaping!');
