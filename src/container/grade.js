@@ -43,10 +43,12 @@ class Grade extends Component {
                                         <TableBody displayRowCheckbox={false}>
                                             {
                                                 sem.subjects.map((element, index) => {
+                                                    let name = element.name;
+                                                    if(name.split(' - ').length == 1) name += ' - ' + element.section_id;
                                                     return (
                                                         <TableRow key={index} >
                                                             <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '20%' }}>{element.course_id ? element.course_id : element.courseNo}</TableRowColumn>
-                                                            <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '50%' }}>{element.name}</TableRowColumn>
+                                                            <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '50%' }}>{name}</TableRowColumn>
                                                             <TableRowColumn style={{ fontSize: styleReduce ? '16px' :  contentFontSize, width: '30%' }}>{
                                                                 element.grade >= 0 && element.grade <= 4 ? grades[parseInt((4 - element.grade) / 0.5)] : element.grade
                                                             }</TableRowColumn>
