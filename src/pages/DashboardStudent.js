@@ -203,8 +203,12 @@ class DashboardStudent extends Component {
             allSubjects: copyAllSubject,
           }, this.createClass);
         }
-      })
+        else if(res.data == 'EXIST') {
+          alert('You registered this course!');
+        }
+      });
     }
+    else alert('Schedule is overlaping!');
   }
 
   falseOnlist = (index) => {
