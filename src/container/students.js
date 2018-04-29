@@ -105,7 +105,7 @@ export default class ListExampleSelectable extends Component {
   render = () => {
     return (
     <div className="row" style={{ height: '100%' }}>
-      <div className="col-xs-4">
+      <div className="col-xs-4" style={{ overflow: 'scroll', height: '100%' }}>
         <SelectableList defaultValue={0}>
           <Subheader>Student List</Subheader>
           {
