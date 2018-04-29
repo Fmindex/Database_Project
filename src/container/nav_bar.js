@@ -8,10 +8,7 @@ class NavBar extends Component {
     return (
         <nav className="navbar navbar-inverse" role="navigation" style={{ padding: '0px', width: '100%', height: '5vh', position: 'absolute' }}>
             <div href="#" className="navbar-left" style={{fontSize: '20px', color: 'gray', paddingLeft: '10px', paddingTop: '12px'}}>
-                PREREGIS
-            </div>
-            <div href="#" className="navbar-left" style={{fontSize: '12px', color: 'gray', paddingLeft: '10px', paddingTop: '18px'}}>
-                (in process)
+                REG CHULA v2
             </div>
             <div 
                 className="navbar-right" 

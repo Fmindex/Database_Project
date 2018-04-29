@@ -255,15 +255,17 @@ class DashboardTeacher extends Component {
       let courses = res.data.courses;
       let subjects = [];
       courses.map((course, index) => {
-        let subject = {
-          courseNo: course.course_id,
-          name: course.name,
-          time: [],
-          index: index,
-          onList: true,
-        };
 
         course.sections.map(section => {
+          let subject = {
+            courseNo: course.course_id,
+            name: course.name + ' - ' + section.section_id,
+            section: section.section_id,
+            time: [],
+            index: index,
+            onList: true,
+          };
+
           section.time_slots.map(slot => {
             let starts = slot.start_time.split(':');
             let ends = slot.end_time.split(':');
@@ -279,9 +281,11 @@ class DashboardTeacher extends Component {
               day: day,
             });
           });
+          
+          subjects.push(subject);
+
         });
 
-        subjects.push(subject);
       });
       this.setState({selectdSubject: subjects}, this.createClass);
     });
