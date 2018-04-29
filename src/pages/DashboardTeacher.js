@@ -31,6 +31,7 @@ class DashboardTeacher extends Component {
     ],
     selectedPage: { name: 'Schedule', detail: 'View your table' },
     classOnTable: [[], [], [], [], []],
+    selectdSubject: [],
     subject: [
       { 
         courseNo: '0295101', 
@@ -190,7 +191,7 @@ class DashboardTeacher extends Component {
   }
 
   createClass = () => {
-    let subj = this.state.subject;
+    let subj = this.state.selectdSubject;
     let copyClass = [[],[],[],[],[],[],[],[]];
 
     for(var day = 0; day < 8; day++){
@@ -215,14 +216,13 @@ class DashboardTeacher extends Component {
             }
           }
         }
-        if(ansCount == 1) {
+        if(ansCount > 0) {
           copyClass[day].push(selectedSubj);
         } else if(ansCount == 0) {
           copyClass[day].push({ courseNo: '0' });
         }
       }
     }
-    
     let res = [[], [], [], [], []];
     for(var day = 1; day < 6; day++) {
       for(var time = 800; time < 1700; time+=50) {
@@ -236,7 +236,6 @@ class DashboardTeacher extends Component {
         }
       }
     }
-    
     this.setState({
         classOnTable: res,
     });
@@ -250,7 +249,6 @@ class DashboardTeacher extends Component {
   
   constructor(props) {
     super(props);
-    console.log('kuy');
     let backend = 'http://localhost:3000';
     axios.get(backend + '/instructor/course/all/?token=' + this.cookies.get('token')).then((res) => {
       console.log(res.data);
@@ -276,8 +274,8 @@ class DashboardTeacher extends Component {
             else if (slot.day === 'thursday') day = 4;
             else if (slot.day === 'friday') day = 5;
             subject.time.push({
-              start: parseInt(starts[0]) * 100 + parseInt(starts[1]),
-              end: parseInt(ends[0]) * 100 + parseInt(ends[1]),
+              start: parseInt(starts[0]) * 100 + parseInt(starts[1]) / 30 * 50,
+              end: parseInt(ends[0]) * 100 + parseInt(ends[1]) / 30 * 50,
               day: day,
             });
           });
@@ -285,8 +283,7 @@ class DashboardTeacher extends Component {
 
         subjects.push(subject);
       });
-      this.setState({subject: subjects});
-      this.createClass();
+      this.setState({selectdSubject: subjects}, this.createClass);
     });
   }
 
@@ -314,7 +311,7 @@ class DashboardTeacher extends Component {
               </CardText>
               :
               <CardText style={{ height: '78vh', width: '100%' }}>
-                  {this.state.selectedPage.name === 'Schedule' && <Table subject={this.state.subject} falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
+                  {this.state.selectedPage.name === 'Schedule' && <Table falseOnlist={this.falseOnlist} classOnTable={this.state.classOnTable} />}
                   {this.state.selectedPage.name === 'Grade' && <Grade subject={this.state.subject} />}
                   {this.state.selectedPage.name === 'Students' && <Students />}
               </CardText>

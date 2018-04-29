@@ -264,7 +264,7 @@ class DashboardStudent extends Component {
             }
           }
         }
-        if(ansCount == 1) {
+        if(ansCount > 0) {
           copyClass[day].push(selectedSubj);
         } else if(ansCount == 0) {
           copyClass[day].push({ courseNo: '0' });
