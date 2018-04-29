@@ -50,7 +50,7 @@ class LoginPage extends Component {
                 password : this.state.password
             }).then(function (response) {
                 if( Object.keys(response.data).length === 0 ){
-                    console.log("fuck")
+                    alert('Your username or password wrong!');
                 } else { 
                     console.log( response.data );
                     console.log('LOGIN INST SUCCESS');

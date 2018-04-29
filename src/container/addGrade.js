@@ -29,8 +29,8 @@ class ShowList extends Component {
         dataStudentID: ['5830622421', '58311111'],
         dataGrade: [],
         courseId: '',
-        year: '',
-        semester: '',
+        year: '2017',
+        semester: '2',
         grade: '',
         section: '',
         studentId: '',
@@ -60,6 +60,12 @@ class ShowList extends Component {
             grade: grade,
         }).then(res => {
             console.log(res.data);
+            if(res.data == 'DENY') {
+                alert('You are not teaching this section');
+            }
+            else if (res.data == 'STUDENT NOT FOUND') {
+                alert('This student not found');
+            }
         });
     }
 
@@ -76,9 +82,10 @@ class ShowList extends Component {
                         style={{ marginLeft: '16px' }}
                     />
                 </div>
-                <div className="row">
+                {/* <div className="row">
                     Year:
                 <AutoComplete
+                        disabled
                         hintText="ex. 2016"
                         dataSource={this.state.dataYear}
                         onUpdateInput={(value) => this.handleUpdateInput({ ...this.state, year: value })}
@@ -89,13 +96,14 @@ class ShowList extends Component {
                 <div className="row">
                     Semester:
                 <AutoComplete
+                        disabled
                         hintText="ex. 1"
                         dataSource={this.state.dataSemester}
                         onUpdateInput={(value) => this.handleUpdateInput({ ...this.state, semester: value })}
                         value={this.state.semester}
                         style={{ marginLeft: '16px' }}
                     />
-                </div>
+                </div> */}
                 <div className="row">
                     Section:
                 <AutoComplete
