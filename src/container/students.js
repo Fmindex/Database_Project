@@ -71,11 +71,13 @@ export default class ListExampleSelectable extends Component {
               grade: 0,
               credit: 0,
               subjects: [],
+              verify: true,
             }
             student.semesters.push(sem);
           }
           if (course.grade != 'W') {
             if (course.grade != '-') sem.grade += course.grade * course.credit;
+            else sem.verify = false;
             sem.credit += course.credit;
           }
           sem.subjects.push(course);

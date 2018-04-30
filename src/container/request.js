@@ -15,7 +15,6 @@ import axios from 'axios';
 import { print } from 'util';
 import Cookies from 'universal-cookie';
 
-
 const styles = {
     block: {
         maxWidth: 250,
@@ -98,12 +97,16 @@ class Request extends Component {
                     <TableBody displayRowCheckbox={false}>
                         {
                             this.state.requests.map((request) => {
-                                return (
-                                    <TableRow>
-                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{request.request_id}</TableRowColumn>
-                                        <TableRowColumn style={{ fontSize: contentFontSize, width: '50%' }}>{request.type}</TableRowColumn>
-                                    </TableRow>
-                                )
+                                if(request.type != 'null') {
+                                    return (
+                                        <TableRow>
+                                            <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{request.request_id}</TableRowColumn>
+                                            <TableRowColumn style={{ fontSize: contentFontSize, width: '50%' }}>{
+                                                request.type == 'bai' ? 'ใบรับรองความเป็นนิสิต' : request.type
+                                            }</TableRowColumn>
+                                        </TableRow>
+                                    );
+                                }
                             })
                         }
                     </TableBody>
