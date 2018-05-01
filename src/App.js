@@ -41,7 +41,7 @@ class App extends Component {
   render() {
     return (
         <div style={{ overflow: 'hidden', height: '80%' }}>
-          <NavBar logOut={this.logOut} />
+          <NavBar logOut={this.logOut} isLogin={this.state.page == 'login'} />
           {this.state.page === 'login' && <LoginPage changePage={this.changePage} changeID = {this.changeID} changeType = {this.changeType}/>}
           {this.state.page === 'studentDashboard' && <DashboardStudent id = {this.state.id}/>}
           {this.state.page === 'teacherDashboard' && <DashboardTeacher id = {this.state.id}/>}

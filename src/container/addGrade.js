@@ -60,13 +60,13 @@ class ShowList extends Component {
             grade: grade,
         }).then(res => {
             console.log(res.data);
-            if(res.data == 'DENY') {
+            if (res.data == 'DENY') {
                 alert('You are not teaching this section');
             }
             else if (res.data == 'STUDENT NOT FOUND') {
                 alert('This student not found');
             }
-            else if(res.data == 'OK') {
+            else if (res.data == 'OK') {
                 alert('SUCCESS!');
             }
         });

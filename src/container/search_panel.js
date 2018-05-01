@@ -1,261 +1,405 @@
 import 'react-select/dist/react-select.css';
 
 import React, { Component } from 'react';
-
+import axios from 'axios';
 import Select from 'react-select';
+import RaisedButton from 'material-ui/RaisedButton';
+
+import {
+	Table,
+	TableBody,
+	TableHeader,
+	TableHeaderColumn,
+	TableRow,
+	TableRowColumn,
+} from 'material-ui/Table';
+import Cookies from 'universal-cookie';
+import Schedule from './new_table';
+
+const cookies = new Cookies();
 
 class SearchPanel extends Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            startTime: {value: 800, label: '8.00'},
-            endTime: {value: 1700, label: '17.00'},
-            time: null,
-            courseNo: '',
-            name: '',
-            searchResult: this.props.subject,
-            day: null,
-        };
-        
-        this.onNameChange = this.onNameChange.bind(this);
-        this.onCourseNoChange = this.onCourseNoChange.bind(this);
-        this.onFilter = this.onFilter.bind(this);
-        this.onFilterDay = this.onFilterDay.bind(this);
-        this.onStartTimeChange = this.onStartTimeChange.bind(this);
-        this.onEndTimeChange = this.onEndTimeChange.bind(this);
-        this.onDayChange = this.onDayChange.bind(this);
-    }
 
-    onFilter(name, courseNo, day) {
-        let copyResult = [];
-        copyResult = this.props.subject.filter((subject) => { 
-            return (
-                ( name == null || name.length == 0 || subject.name.toLowerCase().indexOf(name) >= 0 ) &&
-                ( courseNo == null || courseNo.length == 0 || subject.courseNo.indexOf(courseNo) >= 0 ) &&
-                this.onFilterDay(subject, day)
-            )
-        })
-        this.setState({
-            searchResult: copyResult,
-        });
-    }
+	componentWillMount() {
+		axios.get('http://localhost:3000/course/all').then(res => {
+			this.setState({
+				courses: res.data.courses
+			}, () => {
+				let pickSection = [];
+				res.data.courses.map((course, index) => {
+					pickSection.push(course.sections[0].section_id);
+				});
+				this.setState({
+					pickSection: pickSection
+				}, () => this.updateResult());
+			});
+			console.log(res.data);
+		});
 
-    onFilterDay(subject, day) {
-        let available = false;
+	}
 
-        if(day == null) day = { value: 0};
-        for(var i = 0; i < subject.time.length; i++) {
-            if(day.value == 0 || subject.time[i].day == day.value) {
-                available = true;
-            }
-        }
-        return available;
-    }
-    
-    onStartTimeChange(time) {
-        this.setState({
-            startTime: time,
-        });
-    }
+	constructor(props) {
+		super(props);
 
-    onEndTimeChange(time) {
-        this.setState({
-            endTime: time,
-        });
-    }
+		let courses = [];
+		props.studentCourses.map(course => {
+			course.sections.map(section => {
+				if(section.year == 2017 && section.semester == 2) {
+					courses.push({
+						courseId: course.course_id,
+						courseName: course.name,
+						section: section.section_id,
+						year: section.year,
+						semester: section.semester,
+						grade: section.grade,
+					});
+				}
+			});
+		});
 
-    onDayChange(day) {
-        this.onFilter(this.state.name, this.state.courseNo, day);
-        this.setState({
-            day: day,
-        });
-    }
+		this.state = {
+			courses: [],
+			results: [],
+			day: '',
+			courseId: '',
+			courseName: '',
+			pickSection: [],
+			plan: 0,
+			planTitle: 'REGISTER',
+			studentCourses: courses,
+			preCourses: [],
+		};
+	}
 
-    onCourseNoChange() {
-        this.onFilter(this.state.name, this.refs.courseNo.value, this.state.day);
-        this.setState({
-            courseNo: this.refs.courseNo.value,
-        });
-    }
-    
-    onNameChange() {
-        this.onFilter(this.refs.name.value.toLowerCase(), this.state.courseNo, this.state.day);
-        this.setState({
-            name: this.refs.name.value,
-        });
-        console.log(this.refs.name.value);
-    }
+	updateStudentCourses = () => {
+		let courses = [];
+		this.props.studentCourses.map(course => {
+			course.sections.map(section => {
+				if (section.year == 2017 && section.semester == 2) {
+					courses.push({
+						courseId: course.course_id,
+						courseName: course.name,
+						section: section.section_id,
+						year: section.year,
+						semester: section.semester,
+						grade: section.grade,
+					});
+				}
+			});
+		});
 
-    timeOption() {
-        return [
-            {value: 800, label: '8.00'},
-            {value: 850, label: '8.30'},
-            {value: 900, label: '9.00'},
-            {value: 950, label: '9.30'},
-            {value: 1000, label: '10.00'},
-            {value: 1050, label: '10.30'},
-            {value: 1100, label: '11.00'},
-            {value: 1150, label: '11.30'},
-            {value: 1200, label: '12.00'},
-            {value: 1250, label: '12.30'},
-            {value: 1300, label: '13.00'},
-            {value: 1350, label: '13.30'},
-            {value: 1400, label: '14.00'},
-            {value: 1450, label: '14.30'},
-            {value: 1500, label: '15.00'},
-            {value: 1550, label: '15.30'},
-            {value: 1600, label: '16.00'},
-            {value: 1650, label: '16.30'},
-        ];
-    }
+		this.setState({
+			studentCourses: courses,
+		});
+	}
 
-    dayOption() {
-        return [
-            { value: 1, label: 'Monday' },
-            { value: 2, label: 'Tuesday' },
-            { value: 3, label: 'Wednesday' },
-            { value: 4, label: 'Thursday' },
-            { value: 5, label: 'Friday' },
-            { value: 6, label: 'Saturday' },
-            { value: 7, label: 'Sunday' }, 
-        ];
-    }
+	updateResult = () => {
+		this.setState({
+			results: this.state.courses,
+		});
+	}
 
-    day(value) {
-        let copyDay = this.dayOption();
-        let nameDay = '';
-        for(var i = 0; i < copyDay.length; i++ ){
-            if(value == copyDay[i].value){
-                nameDay = copyDay[i].label;
-            }
-        }
-        return nameDay;
-    }
+	onDayChange = (day) => {
+		this.setState({ day }, () => this.updateResult());
+	}
 
-    time(value) {
-        let copyTime = this.timeOption();
-        let nameTime = '';
-        for(var i = 0; i < copyTime.length; i++ ){
-            if(value == copyTime[i].value){
-                nameTime = copyTime[i].label;
-            }
-        }
-        return nameTime;
-    }
+	onCourseIdChange = (courseId) => {
+		this.setState({ courseId }, () => this.updateResult());
+	}
 
-  render() {
-    console.log(this.props.subject);
-    return (
-        <div className="row" style={{ height: '100%' }}>
-            <div className="col-xs-6" style={{ height: '100%' }}>
-                <div className="panel panel-default" style={{ height: '100%', overflow: 'hidden' }}>
-                    <div className="input-group"> 
-                        <span className="input-group-addon"><i className="glyphicon glyphicon-calendar"></i></span>  
-                        <Select  
-                            options={ this.dayOption() }
-                            value={ this.state.day }
-                            placeholder="Day"
-                            onChange={ this.onDayChange }
-                            className="text-left selectstyle"
-                        />
-                    </div>
+	onCourseNameChange = (courseName) => {
+		this.setState({ courseName }, () => this.updateResult());
+	}
 
-                    <div className="input-group" >
-                        <span className="input-group-addon"><i className="glyphicon glyphicon-tag"></i></span>
-                        <input 
-                            type="text" 
-                            className="form-control" 
-                            ref="courseNo" 
-                            placeholder="Course NO. : 88888888" 
-                            value={this.state.courseNo} 
-                            onChange={() => this.onCourseNoChange()} 
-                        />
-                    </div>
+	onSectionChange = (data, index) => {
+		let pick = this.state.pickSection.slice(0);
+		pick[index] = data;
+		this.setState({
+			pickSection: pick,
+		});
+	}
 
-                    <div className="input-group">
-                        <span className="input-group-addon"><i className="glyphicon glyphicon-book"></i></span>
-                        <input 
-                            type="text" 
-                            className="form-control"
-                            ref="name" 
-                            placeholder="Course Name : Gen Phy II" 
-                            value={this.state.name} onChange={() => this.onNameChange()} 
-                        />
-                    </div>
-                    <div className="blackline" style={{ marginTop: '30px', marginBottom: '20px'}} />
+	onPlanChange = (plan) => {
+		if(plan.value != 0) {
+			axios.get(`http://localhost:3000/student/pre_courses/?token=${cookies.get('token')}&plan_id=${plan.value}`).then(res => {
+				this.setState({
+					preCourses: res.data.courses,
+					plan: plan.value,
+					planTitle: plan.label,
+				}, () => this.forceUpdate());
+			});
+		}
+	}
 
-                    <div className="col-sm-12" style={{ overflow: 'scroll', height: '100%' }}>    
-                        <div className="resultstyle">
-                            ( Result : {this.state.searchResult.length} { this.state.searchResult.length >= 2 ? 'classes )' : 'class )' }
-                        </div>
-                        <ul className="list-group">
-                            { 
-                                this.state.searchResult.map((element, index) => { 
-                                    return (
-                                        <div className="list-group-item" onClick={() => this.showOnTable()}>
-                                            <div className="courseNostyle" > { element.courseNo } </div>
-                                            <div className="namestyle" > { element.name } </div>
-                                            <button onClick={()=> this.props.trueOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black' }}>
-                                                ADD
-                                            </button>
-                                            <div className="text-left" > 
-                                                { 
-                                                    element.time.map((time) => {
-                                                        return(
-                                                            <div>
-                                                                <div style={{ display: 'inline', padding: '0 10px 0 25%'}} >{ this.day(time.day) }</div>
+	addCourse = (course, section_id) => {
+		if(confirm('Sure?')) {
+			let section = course.sections.find(section => section.section_id == section_id);
+			axios.post(`http://localhost:3000/student/register/add?token=${cookies.get('token')}`, {
+				course_id: course.course_id,
+				section_id: section.section_id,
+				year: section.year,
+				semester: section.semester,
+			}).then(res => {
+				if (res.data == 'OK') {
+					this.props.updateStudentCourses();
+					setTimeout(() => {
+						this.updateStudentCourses();
+						this.forceUpdate();
+					}, 500);
+				}
+				else if (res.data == 'EXIST') alert('You already registered this course!');
+				else if (res.data == 'SECTION FULL') alert('This section is full!')
+			});
+		}
+	} 
+	addPreCourse = (course, section_id) => {
+		if (confirm('Sure?')) {
+			let section = course.sections.find(section => section.section_id == section_id);
+			axios.post(`http://localhost:3000/student/register/pre_add?token=${cookies.get('token')}`, {
+				course_id: course.course_id,
+				section_id: section.section_id,
+				year: section.year,
+				semester: section.semester,
+				plan_id: this.state.plan,
+			}).then(res => {
+				if (res.data == 'OK') {
+					axios.get(`http://localhost:3000/student/pre_courses/?token=${cookies.get('token')}&plan_id=${this.state.plan}`).then(res => {
+						this.setState({
+							preCourses: res.data.courses
+						});
+					});
+				}
+				else if (res.data == 'EXIST') alert('You already registered this course!');
+				else if (res.data == 'SECTION FULL') alert('This section is full!')
+			});
+		}
+	}  
+	removeCourse = (course) => {
+		if(confirm('Sure?')) {
+			axios.post(`http://localhost:3000/student/register/remove?token=${cookies.get('token')}`, {
+				course_id: course.courseId,
+				section_id: course.section,
+				year: course.year,
+				semester: course.semester,
+			}).then(res => {
+				if(res.data == 'OK') {
+					alert('SUCCESS!');
+					this.props.updateStudentCourses();
+					setTimeout(() => {
+						this.updateStudentCourses();
+						this.forceUpdate();
+					}, 500);
+				}
+			});
+		}
+	}
+	removePreCourse = (course) => {
 
-                                                                { this.time(time.start)} - { this.time(time.end) }
-                                                            </div>
-                                                        )}
-                                                    ) 
-                                                } 
-                                            </div>
-                                        </div>
-                                    )}
-                                )
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div className="col-xs-6">
-                <div style={{ fontSize: '24px', textDecoration: 'underline' }}>Selected Courses </div>
-                <div style={{ width : '100%', marginTop: '20px'}} >
-                    {
-                        this.props.selectedSubject.map((element, index) => {
-                            return(
-                                <div>
-                                    { element.onList==false ? '' :
-                                        <div className="row" style={{border: '1px solid lightgray', padding: '10px', margin: '5px'}}>
-                                            <div className="courseNostyle" > { element.courseNo } </div>
-                                            <div className="namestyle" > { element.name } </div>
-                                            {
-                                                element.grade === 'W' ?
-                                                <div> WITHDRAWED </div>
-                                                :
-                                                <div>
-                                                    <button onClick={()=> this.props.withdraw(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
-                                                        WITHDRAW
-                                                    </button>
+	}
+	withdraw = (course) => {
+		if (confirm('Sure?')) {
+			axios.post(`http://localhost:3000/student/register/withdraw?token=${cookies.get('token')}`, {
+				course_id: course.courseId,
+				section_id: course.section,
+				year: course.year,
+				semester: course.semester,
+			}).then(res => {
+				if (res.data == 'OK') {
+					alert('SUCCESS!');
+					this.props.updateStudentCourses();
+					this.updateStudentCourses();
+					this.forceUpdate();
+				}
+			});
+		}
+	}
 
-                                                    <button onClick={()=> this.props.falseOnlist(index)} className="btn btn-primary" style={{ float: 'right', backgroundColor: 'black', borderColor: 'black', margin: '4px' }}>
-                                                        REMOVE
-                                                    </button>
-                                                </div>
-                                            }
-                                        </div> 
-                                    }
-                                </div>
-                                
-                            )}
-                        )
-                    }
-                </div>
-            </div>
-        </div>
-    );
-  }
+	render() {
+
+		return (
+			<div style={{ overflow: 'scroll', height: '100%' }}>
+				<div className="row">
+					<div className="col-md-4">
+						<div className="input-group" style={{ margin: 0 }}> 
+							<span className="input-group-addon"><i className="glyphicon glyphicon-calendar"></i></span>  
+							<Select  
+								options={[
+									{value: 'monday', label: 'Monday'.toLocaleUpperCase() },
+									{value: 'tuesday', label: 'Tuesday'.toLocaleUpperCase() },
+									{value: 'wednesday', label: 'Wednesday'.toLocaleUpperCase() },
+									{value: 'thursday', label: 'Thursday'.toLocaleUpperCase() },
+									{value: 'friday', label: 'Friday'.toLocaleUpperCase() },
+									{value: 'saturday', label: 'Saturday'.toLocaleUpperCase() },
+									{value: 'sunday', label: 'Sunday'.toLocaleUpperCase() }
+								]}
+								value={ this.state.day }
+								placeholder="Day"
+								onChange={ this.onDayChange }
+								className="text-left selectstyle"
+							/>
+						</div>
+					</div>
+					
+					<div className="col-md-4">
+						<div className="input-group" style={{ margin: 0 }}>
+							<span className="input-group-addon"><i className="glyphicon glyphicon-tag"></i></span>
+							<input
+							style={{borderLeftTopRadius: 0, borderLeftBottomRadius: 0,}} 
+								type="text" 
+								className="form-control" 
+								ref="courseNo" 
+								placeholder="Course NO. : 88888888" 
+								value={this.state.courseNo} 
+								onChange={(data) => this.onCourseIdChange(data.target.value)} 
+							/>
+						</div>
+					</div>
+								
+					<div className="col-md-4">
+						<div className="input-group" style={{ margin: 0 }}>
+							<span className="input-group-addon"><i className="glyphicon glyphicon-book"></i></span>
+							<input 
+							style={{borderLeftTopRadius: 0, borderLeftBottomRadius: 0,}}
+								type="text" 
+								className="form-control"
+								ref="name" 
+								placeholder="Course Name : DB MGT SYS DESIGN" 
+								value={this.state.name}
+								onChange={(data) => this.onCourseNameChange(data.target.value)} 
+							/>
+						</div>
+					</div>
+					
+				</div>
+
+				<div style={{ marginTop: 20, fontSize: 20, }}>
+					<div>Search Result</div>
+					<div style={{ fontSize: 14, width: 200, marginTop: 12, marginBottom: 12, }} >
+						<Select
+							options={[
+								{ value: 0, label: 'REGISTER' },
+								{ value: 1, label: 'PLAN A' },
+								{ value: 2, label: 'PLAN B' },
+								{ value: 3, label: 'PLAN C' },
+							]}
+							value={this.state.plan}
+							onChange={this.onPlanChange}
+						/>
+					</div>
+					<Table>
+						<TableBody displayRowCheckbox={false}>
+							<TableRow>
+								<TableRowColumn style={{ width: 60 }} ><div style={{ fontWeight: 'bold', }}>#</div></TableRowColumn>
+								<TableRowColumn style={{ width: 200 }} ><div style={{ fontWeight: 'bold', }}>Name</div></TableRowColumn>
+								<TableRowColumn style={{ width: 100 }} ><div style={{ fontWeight: 'bold', }}>Section</div></TableRowColumn>
+								<TableRowColumn style={{ width: 150 }} ><div style={{ fontWeight: 'bold', }}>Class</div></TableRowColumn>
+								{/*<TableRowColumn style={{ width: 200 }} ><div style={{ fontWeight: 'bold', }}>Seat</div></TableRowColumn>*/}
+								<TableRowColumn style={{ width: 100 }} ><div style={{ fontWeight: 'bold', }}></div></TableRowColumn>
+							</TableRow>
+						</TableBody>
+					</Table>
+					<div style={{ overflow: 'scroll', height: 300, }}>
+						<Table>
+							<TableBody displayRowCheckbox={false}>
+							{
+								this.state.results.map((result, index) => {
+									let section = result.sections.find(section => section.section_id == this.state.pickSection[index]);
+
+									return (
+										<TableRow key={index}>
+											<TableRowColumn style={{ width: 60 }} >{result.course_id}</TableRowColumn>
+											<TableRowColumn style={{ width: 200 }} >{result.name}</TableRowColumn>
+											<TableRowColumn style={{ width: 100 }} >
+												<input
+													style={{ borderLeftTopRadius: 0, borderLeftBottomRadius: 0, }}
+													type="text"
+													className="form-control"
+													ref="name"
+													value={this.state.pickSection[index]}
+													onChange={(data) => this.onSectionChange(data.target.value, index)}
+												/>
+											</TableRowColumn>
+											<TableRowColumn style={{ width: 150 }} >
+												{
+													!section ? 'SECTION NOT EXTIST' : section.time_slots.map((slot, index) => (
+														<div key={index}>
+															<span style={{ marginRight: 4 }} >{slot.day.toLocaleUpperCase()}: </span>
+															{slot.start_time} - {slot.end_time}
+														</div>
+													))
+												}
+											</TableRowColumn>
+											{/*<TableRowColumn style={{ width: 200 }} >
+												{
+													section ? section.amount + '/' + section.capacity : 'SECTION NOT EXTIST'
+												}
+											</TableRowColumn>*/}
+											<TableRowColumn style={{ width: 100 }} >
+												<RaisedButton label="ADD" primary={true} onClick={() => {
+													if (this.state.plan == 0) this.addCourse(result, this.state.pickSection[index]);
+													else this.addPreCourse(result, this.state.pickSection[index]);
+												}} />
+											</TableRowColumn>
+										</TableRow>
+									);
+								})
+							}
+							</TableBody>
+						</Table>
+					</div>
+				</div>
+
+				<div style={{ marginTop: 20, }}>
+					<div style={{ fontSize: 20 }} >{this.state.planTitle}</div>
+					<div style={{ marginTop: 20, marginBottom: 20, }} >
+						{
+							this.state.plan == 0 &&
+							<Schedule year={2017} semester={2} courses={this.props.studentCourses} />
+						}
+						{
+							this.state.plan != 0 &&
+							<Schedule year={2017} semester={2} courses={this.state.preCourses} />
+						}
+					</div>
+					{
+						this.state.plan == 0 &&
+						<Table>
+							<TableBody displayRowCheckbox={false}>
+								<TableRow>
+									<TableRowColumn style={{ fontWeight: 'bold', width: '20%' }}>#</TableRowColumn>
+									<TableRowColumn style={{ fontWeight: 'bold', width: '30%' }}>Course</TableRowColumn>
+									<TableRowColumn style={{ fontWeight: 'bold', width: '20%' }}>Section</TableRowColumn>
+									<TableRowColumn style={{ fontWeight: 'bold', }}></TableRowColumn>
+								</TableRow>
+								{
+									this.state.studentCourses.map((course, index) => {
+										
+										return (
+											<TableRow key={index} >
+												<TableRowColumn style={{ width: '20%' }}>{course.courseId}</TableRowColumn>
+												<TableRowColumn style={{ width: '30%' }}>{course.courseName}</TableRowColumn>
+												<TableRowColumn style={{ width: '20%' }}>{course.section}</TableRowColumn>
+												<TableRowColumn style={{ }}>
+													<RaisedButton label="REMOVE" style={{ marginRight: 8 }} primary={true} onClick={() => {
+														if(this.state.plan == 0) this.removeCourse(course);
+														else this.removePreCourse(course);
+													}} />
+													{
+														this.state.plan == 0 &&
+														<RaisedButton disabled={course.grade == 'W'} label="WITHDRAW" primary={true} onClick={() => this.withdraw(course)} />
+													}
+												</TableRowColumn>
+											</TableRow>
+										)
+									})
+								}
+							</TableBody>
+						</Table>
+					}
+				</div>
+			</div>
+		);
+	}
 }
 
 export default SearchPanel;

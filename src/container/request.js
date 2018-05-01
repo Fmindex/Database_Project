@@ -49,11 +49,14 @@ class Request extends Component {
         axios.post(localhost + `/student/request/?token=${this.cookies.get('token')}`,{
             type: this.state.selectedValue,
         }).then( (result) =>{
-            console.log('result: ',result)
-            console.log('added request, updating requests');
-            axios.get(localhost + `/student/request/?token=${this.cookies.get('token')}`).then((docs) => {
-                this.setState({requests: docs.data.requests});
-            })
+            if(result.data == 'OK') {
+                axios.get(localhost + `/student/request/?token=${this.cookies.get('token')}`).then((docs) => {
+                    this.setState({ requests: docs.data.requests });
+                });
+            }
+            else {
+                alert('Please, Choose your request type!');
+            }
         });
     }
 
@@ -62,7 +65,7 @@ class Request extends Component {
     return (
         <div className="col-xs-12" style={{ overflow: 'scroll', height: '100%' }}>
             <Divider />
-            <div style={{ fontSize: '32px', marginBottom: '24px', marginTop: '16px' }}>Request Form</div>
+            <div style={{ fontSize: '20px', marginBottom: '24px', marginTop: '16px' }}>Request Form</div>
             <RadioButtonGroup name="shipSpeed" valueSelected={selectedValue} defaultSelected="not_light" style={{ paddingLeft: '16px' }}>
                 <RadioButton
                     value={'transcript'}
@@ -72,38 +75,44 @@ class Request extends Component {
                 />
                 <RadioButton
                     value={'bai'}
-                    label="ใบรับรอง"
+                    label="ใบรับรองความเป็นนิสิต"
                     style={styles.radioButton}
                     onClick={() => this.setState({ selectedValue: 'bai' })}
                 />
                 <RadioButton
                     value={'graduation'}
-                    label="Graduation"
+                    label="การขอจบการศึกษา"
                     style={styles.radioButton}
                     onClick={() => this.setState({ selectedValue: 'graduation' })}
                 />
             </RadioButtonGroup>
             <RaisedButton label="Send Request" primary={true} style={styles.button} onClick={this.onSubmit} />
             <Divider />
-            <div style={{ fontSize: '32px', marginBottom: '16px', marginTop: '64px'  }}>Request History</div>
-            <div style={{ paddingRight: '64px', width: '100%', paddingLeft: '64px' }}>
+            <div style={{ fontSize: '20px', marginBottom: '16px', marginTop: '32px' }}>Request History</div>
+            <div style={{ width: '100%' }}>
                 <Table>
-                    <TableHeader displaySelectAll={false}>
-                        <TableRow>
-                            <TableHeaderColumn style={{ fontSize: titleFontSize, width: '20%' }}>No.</TableHeaderColumn>
-                            <TableHeaderColumn style={{ fontSize: titleFontSize, width: '50%' }}>Request Type</TableHeaderColumn>
-                        </TableRow>
-                    </TableHeader>
                     <TableBody displayRowCheckbox={false}>
+                        <TableRow>
+                            <TableRowColumn style={{ fontWeight: 'bold', width: 50, }}>No.</TableRowColumn>
+                            <TableRowColumn style={{ fontWeight: 'bold', }}>Request Type</TableRowColumn>
+                            <TableRowColumn style={{ fontWeight: 'bold', }}>Request Date</TableRowColumn>
+                            <TableRowColumn style={{ fontWeight: 'bold', }}>Verification</TableRowColumn>
+                        </TableRow>
                         {
-                            this.state.requests.map((request) => {
+                            this.state.requests.reverse().map((request, index) => {
                                 if(request.type != 'null') {
                                     return (
-                                        <TableRow>
-                                            <TableRowColumn style={{ fontSize: contentFontSize, width: '20%' }}>{request.request_id}</TableRowColumn>
-                                            <TableRowColumn style={{ fontSize: contentFontSize, width: '50%' }}>{
-                                                request.type == 'bai' ? 'ใบรับรองความเป็นนิสิต' : request.type
+                                        <TableRow key={index} >
+                                            <TableRowColumn style={{  width: 50, }}>{request.request_id}</TableRowColumn>
+                                            <TableRowColumn style={{  }}>{
+                                                request.type == 'bai' ? 'ใบรับรองความเป็นนิสิต' : request.type == 'graduation' ? 'การขอจบการศึกษา' : 'Transcript'
                                             }</TableRowColumn>
+                                            <TableRowColumn>{request.requested_at.substring(0, 10)}</TableRowColumn>
+                                            <TableRowColumn>
+                                                {request.verify === 0 && <i style={{ color: 'orange' }} className='material-icons'>find_in_page</i>}
+                                                {request.verify === 1 && <i style={{ color: 'green'}} className='material-icons'>check</i>}
+                                                {request.verify === 2 && <i style={{ color: 'blue' }} className='material-icons'>done_all</i>}
+                                            </TableRowColumn>
                                         </TableRow>
                                     );
                                 }

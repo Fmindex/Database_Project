@@ -1,6 +1,6 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {List, ListItem, makeSelectable} from 'material-ui/List';
+import { List, ListItem, makeSelectable } from 'material-ui/List';
 import Avatar from 'material-ui/Avatar';
 import Subheader from 'material-ui/Subheader';
 import axios from 'axios';
@@ -59,12 +59,12 @@ export default class ListExampleSelectable extends Component {
 
       let students = [];
       res.data.students.map(student => {
-        
+
         student.semesters = [];
         student.courses.map(course => {
-          
+
           let sem = student.semesters.find(sem => sem.semester === course.semester && sem.year === course.year);
-          if(sem === undefined) {
+          if (sem === undefined) {
             sem = {
               year: course.year,
               semester: course.semester,
@@ -100,35 +100,36 @@ export default class ListExampleSelectable extends Component {
         students.push(student);
       });
 
-      this.setState({students: students});
+      this.setState({ students: students });
     });
   }
 
   render = () => {
     return (
-    <div className="row" style={{ height: '100%' }}>
-      <div className="col-xs-4" style={{ overflow: 'scroll', height: '100%' }}>
-        <SelectableList defaultValue={0}>
-          <Subheader>Student List</Subheader>
-          {
-            this.state.students.map((student, index) => (
-              <ListItem
-                onClick={() => this.setState({studentIndex: index})}
-                value={index}
-                primaryText={student.name}
-              />
-            ))
-          }
-        </SelectableList>
-      </div>
-      <div className="col-xs-8" style={{ overflow: 'scroll', height: '100%' }}>
-        <div style={{ overflow: 'scroll' }}>
-        {
-          this.state.students.length &&
-          <Grade semesters={this.state.students[this.state.studentIndex].semesters} onReduce={true} />
-        }
+      <div className="row" style={{ height: '100%' }}>
+        <div className="col-xs-4" style={{ overflow: 'scroll', height: '100%' }}>
+          <SelectableList defaultValue={0}>
+            <Subheader>Student List</Subheader>
+            {
+              this.state.students.map((student, index) => (
+                <ListItem
+                  onClick={() => this.setState({ studentIndex: index })}
+                  value={index}
+                  primaryText={student.name}
+                />
+              ))
+            }
+          </SelectableList>
+        </div>
+        <div className="col-xs-8" style={{ overflow: 'scroll', height: '100%' }}>
+          <div style={{ overflow: 'scroll' }}>
+            {
+              this.state.students.length &&
+              <Grade semesters={this.state.students[this.state.studentIndex].semesters} onReduce={true} />
+            }
+          </div>
         </div>
       </div>
-    </div>
-  )};
+    )
+  };
 }

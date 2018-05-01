@@ -18,80 +18,137 @@ import {
   } from 'material-ui/Table';
 
 class Request extends Component {
-  cookies = new Cookies();
   
-  state = {
-      feeList : [{
-          feeId: 1,
-        feeType: "1", 
-        feeDept: 1, 
-        feeCost: 1,
-        feeYear: 1, 
-      }],
-      sumCost:0,
-  }
+    cookies = new Cookies();
 
-  componentDidMount() {
-    let that = this ;
-    let queryToken = '?token=' + this.cookies.get('token');
-    axios.get('http://127.0.0.1:3000' + '/student/payment' + queryToken, {
-    }).then(function (response) {
-        console.log(response.data) ;
-        var arr = [] ; 
-        var total = 0;
-        response.data.fees.map(fee => {
-            arr.push({
-                feeId: fee.fee_id,
-                feeType: fee.type,
-                feeDept: fee.department_id,
-                feeCost: fee.cost,
-                feeYear: fee.year,
-            }); 
-            total += fee.cost;
-        });
-        that.setState({
-            feeList: arr,
-            total: total
-        });
-        
-    }).catch(function (err) {
-        console.error(err);
-    });  
-  }
+    state = {
+        feeList: [],
+        total: 0,
+        oldPayments: [],
+    };
+
+    componentWillMount() {
+        let that = this ;
+        let queryToken = '?token=' + this.cookies.get('token');
+        axios.get('http://127.0.0.1:3000' + '/student/payment' + queryToken, {
+        }).then(function (response) {
+            var arr = [];
+            var old = [];
+            var total = 0;
+            response.data.fees.map(fee => {
+
+                if(fee.fee_year == 2017 && fee.fee_semester == 2) {
+                    arr.push(fee);
+                    total += fee.cost;
+                }
+                else {
+                    if(old[fee.fee_year + '/' + fee.fee_semester] === undefined) {
+                        old[fee.fee_year + '/' + fee.fee_semester] = {
+                            year: fee.fee_year,
+                            semester: fee.fee_semester,
+                            total: 0,
+                            fees: [],
+                        }
+                    }
+                    
+                    old[fee.fee_year + '/' + fee.fee_semester].fees.push(fee);
+                    old[fee.fee_year + '/' + fee.fee_semester].total += fee.cost;
+                }
+            });
+            let nw = [];
+            Object.keys(old).map(key => {
+                nw.push(old[key]);
+            });
+            nw.sort((A, B) => {
+                let a = A.year * 10 + A.semester;
+                let b = B.year * 10 + B.semester;
+                return b - a;
+            });
+            that.setState({
+                feeList: arr,
+                total: total,
+                oldPayments: nw,
+            });
+            
+        }).catch(function (err) {
+            console.error(err);
+        });  
+    }
 
 
   render() {
 
     const listItems = this.state.feeList.map(
-        function(object) {
+        function(object, key) {
             return (
-                <TableRow>
-                    <TableRowColumn>{object.feeType}</TableRowColumn>
-                    <TableRowColumn>{object.feeYear}</TableRowColumn>
-                    <TableRowColumn>{object.feeCost}</TableRowColumn>
+                <TableRow key={key}>
+                    <TableRowColumn style = {{ width: 100 }} >
+                        {object.paid == true  && <i style={{ color: 'green' }} className='material-icons'>check_circle</i>}
+                        {object.paid == false && <i style={{ color: 'orange' }} className='material-icons'>remove_circle</i>}
+                    </TableRowColumn>
+                    <TableRowColumn>{object.type}</TableRowColumn>
+                    <TableRowColumn>{object.cost}</TableRowColumn>
                 </TableRow>
             );
         });
 
     return (
-        <Table >
-            <TableHeader displaySelectAll={false}>
-                <TableRow>
-                    <TableHeaderColumn>Type</TableHeaderColumn>
-                    <TableHeaderColumn>Registered In</TableHeaderColumn>
-                    <TableHeaderColumn>Cost</TableHeaderColumn>
-                </TableRow>
-            </TableHeader>
-            <TableBody displayRowCheckbox={false}>
-                {listItems}
-                <TableRow>
-                    <TableRowColumn><b>TOTAL</b></TableRowColumn>
-                    <TableRowColumn></TableRowColumn>
-                    <TableRowColumn><b>{this.state.total}</b></TableRowColumn>
-                </TableRow>
-            </TableBody>
-        </Table>
-       
+        <div className="col-xs-12" style={{ overflow: 'scroll', height: '100%' }} >
+            <div style={{ fontSize: 20, marginLeft: 16, }} >Current Semester Payment</div>
+            <div style={{ paddingLeft: 16, paddingRight: 16, marginBottom: 16, }} >
+                <Table>
+                    <TableBody displayRowCheckbox={false}>
+                        <TableRow>
+                            <TableRowColumn style={{ width: 100 }} ></TableRowColumn>
+                            <TableRowColumn>Type</TableRowColumn>
+                            <TableRowColumn>Cost</TableRowColumn>
+                        </TableRow>
+                        {listItems}
+                        <TableRow>
+                            <TableRowColumn style={{ width: 100 }} ></TableRowColumn>
+                            <TableRowColumn><b>TOTAL</b></TableRowColumn>
+                            <TableRowColumn><b>{this.state.total}</b></TableRowColumn>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+
+            <div style={{ fontSize: 20, marginLeft: 16, }} >Payment History</div>
+
+            {
+                this.state.oldPayments.map((payment, key) => (
+                    <div key={key} style={{ padding: 16 }} >
+                        <div style={{ fontSize: 18, marginLeft: 16, marginTop: 16, }}>{payment.year}/{payment.semester}</div>
+                        <Table >
+                            <TableBody displayRowCheckbox={false}>
+                                <TableRow>
+                                    <TableRowColumn style={{ width: 100 }} ></TableRowColumn>
+                                    <TableRowColumn>Type</TableRowColumn>
+                                    <TableRowColumn>Cost</TableRowColumn>
+                                </TableRow>
+                                {
+                                    payment.fees.map((fee, _key) => (
+                                        <TableRow key={_key}>
+                                            <TableRowColumn style={{ width: 100 }} >
+                                                {fee.paid == true && <i style={{ color: 'green' }} className='material-icons'>check_circle</i>}
+                                                {fee.paid == false && <i style={{ color: 'orange' }} className='material-icons'>remove_circle</i>}
+                                            </TableRowColumn>
+                                            <TableRowColumn>{fee.type}</TableRowColumn>
+                                            <TableRowColumn>{fee.cost}</TableRowColumn>
+                                        </TableRow>
+                                    ))
+                                }
+                                <TableRow>
+                                    <TableRowColumn style={{ width: 100 }} ></TableRowColumn>
+                                    <TableRowColumn><b>Total</b></TableRowColumn>
+                                    <TableRowColumn><b>{payment.total}</b></TableRowColumn>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </div>
+                ))
+            }
+        </div>
     );
   }
 }
