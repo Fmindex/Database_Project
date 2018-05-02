@@ -31,20 +31,16 @@ const periods = [
 ];
 
 class Table extends Component {
-  
-  constructor(props) {
-    super(props);
 
-    console.log(props);
-    
+  updateTable = () => {
     let slots = [[], [], [], [], []];
-    props.courses.map(course => {
-      
+    this.props.courses.map(course => {
+
       course.sections.map(section => {
-        
-        if(section.year == this.props.year && section.semester == this.props.semester && section.grade != 'W') {
+
+        if (section.year == this.props.year && section.semester == this.props.semester && section.grade != 'W') {
           section.time_slots.map(slot => {
-            
+
             let word = slot.start_time.split(':');
             let start = parseInt(word[0]) * standardWidth + (parseInt(word[1]) / 60 * standardWidth);
             word = slot.end_time.split(':');
@@ -68,7 +64,7 @@ class Table extends Component {
       slot.sort((a, b) => {
         return a.start - b.start;
       });
-      
+
       let prev = 8 * standardWidth;
       slot.map(cls => {
         cls.marginLeft = cls.start - prev;
@@ -77,13 +73,13 @@ class Table extends Component {
       });
     });
 
-    this.state = {
-      slots: slots
-    };
-
+    return slots;
   }
 
   render = () => {
+
+    let slots = this.updateTable();
+
     return (
       <div style={{ overflow: 'scroll', height: '100%' }}>
         <div style={{ borderColor: 'gray', borderRadius: 8, borderWidth: 2, borderStyle: 'solid', padding: 4, width: periods.length * standardWidth + 50 + 12 }}>
@@ -98,7 +94,7 @@ class Table extends Component {
           </div>
           <div> 
             {
-              this.state.slots.map((slot, index) => (
+              slots.map((slot, index) => (
                 <div key={index} style={{ height: 50, width: '100%', display: 'flex', flexDirection: 'row', marginTop: 4, }} >
                   <div style={{ width: 50, borderRadius: 8, borderTopRightRadius: 0, borderBottomRightRadius: 0, backgroundColor: 'rgb(233, 0, 255)', color: 'white', fontSize: 15, textAlign: 'center', paddingTop: 15, }} >
                     {dayIntToWord[index]}
