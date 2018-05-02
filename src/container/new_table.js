@@ -38,23 +38,25 @@ class Table extends Component {
 
       course.sections.map(section => {
 
-        if (section.year == this.props.year && section.semester == this.props.semester && section.grade != 'W') {
-          section.time_slots.map(slot => {
+        if (section.year == this.props.year && section.semester == this.props.semester) {
+          if(this.props.instructorMode || section.grade != 'W') {
+            section.time_slots.map(slot => {
 
-            let word = slot.start_time.split(':');
-            let start = parseInt(word[0]) * standardWidth + (parseInt(word[1]) / 60 * standardWidth);
-            word = slot.end_time.split(':');
-            let end = parseInt(word[0]) * standardWidth + (parseInt(word[1]) / 60 * standardWidth);
+              let word = slot.start_time.split(':');
+              let start = parseInt(word[0]) * standardWidth + (parseInt(word[1]) / 60 * standardWidth);
+              word = slot.end_time.split(':');
+              let end = parseInt(word[0]) * standardWidth + (parseInt(word[1]) / 60 * standardWidth);
 
-            slots[dayWordToInt[slot.day]].push({
-              courseId: course.course_id,
-              courseName: course.name,
-              section: section.section_id,
-              start: start,
-              end: end,
+              slots[dayWordToInt[slot.day]].push({
+                courseId: course.course_id,
+                courseName: course.name,
+                section: section.section_id,
+                start: start,
+                end: end,
+              });
+
             });
-
-          });
+          }
         }
 
       });
