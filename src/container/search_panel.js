@@ -22,6 +22,7 @@ class SearchPanel extends Component {
 
 	componentWillMount() {
 		axios.get('http://localhost:3000/course/all').then(res => {
+
 			this.setState({
 				courses: res.data.courses
 			}, () => {
@@ -301,8 +302,10 @@ class SearchPanel extends Component {
 			}).then(res => {
 				if(res.data == 'OK') {
 					alert('SUCCESS!');
-					this.props.updateStudentCourses();
-					this.updateStudentCourses();
+					this.onPlanChange({value: 0, label: 'REGISTER'}, () => {
+						this.props.updateStudentCourses();
+						this.updateStudentCourses();
+					});
 				}
 				else alert('Something wrong!');
 			});

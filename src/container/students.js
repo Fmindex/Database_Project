@@ -56,7 +56,6 @@ export default class ListExampleSelectable extends Component {
     super(props);
 
     axios.get('http://localhost:3000/instructor/advisees?token=' + cookies.get('token')).then(res => {
-      console.log(res.data.students);
       let students = res.data.students;
       students.map(student => {
         student.courses.map(course => {
@@ -72,7 +71,11 @@ export default class ListExampleSelectable extends Component {
     });
   }
 
-  render = () => {
+  render = () => {    
+    let courses = [];
+    if (this.state.students.length) courses = this.state.students[this.state.studentIndex].courses;
+    console.log(courses);
+
     return (
       <div className="row" style={{ height: '100%' }}>
         <div className="col-xs-4" style={{ overflow: 'scroll', height: '100%' }}>
@@ -82,7 +85,10 @@ export default class ListExampleSelectable extends Component {
               this.state.students.map((student, index) => (
                 <ListItem
                   key={index}
-                  onClick={() => this.setState({ studentIndex: index })}
+                  onClick={() => {
+                    this.setState({ studentIndex: index })
+                    console.log(index);
+                  }}
                   value={index}
                   primaryText={student.name}
                 />
@@ -94,7 +100,7 @@ export default class ListExampleSelectable extends Component {
           <div style={{ overflow: 'scroll' }}>
             {
               this.state.students.length &&
-              <Grade courses={this.state.students[this.state.studentIndex].courses} onReduce={true} />
+              <Grade courses={courses} onReduce={true} />
             }
           </div>
         </div>

@@ -19,12 +19,11 @@ class Grade extends Component {
         semesters: [],
     }
 
-    constructor(props) {
-        super(props);
+    updateTable() {
 
         let semesters = [];
         let indexPool = [];
-        props.courses.map((course, index) => {
+        this.props.courses.map((course, index) => {
             
             course.sections.map((section, index) => {
                 
@@ -80,11 +79,11 @@ class Grade extends Component {
         this.state = {
             semesters: semesters,
         };
-
-        console.log(semesters);
     }
 
     render() {
+
+        this.updateTable();
 
         return (
             <div className="col-xs-12" style={{ overflow: 'scroll', height: '100%' }}>
