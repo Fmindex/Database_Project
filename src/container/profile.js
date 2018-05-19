@@ -20,6 +20,11 @@ export default class Profile extends Component {
         <Table>
           <TableBody displayRowCheckbox={false}>
             <TableRow>
+              <TableRowColumn style={{ fontSize: 16, width: 150 }} >Student ID :</TableRowColumn>
+              <TableRowColumn style={{ fontSize: 16, }} >{this.props.userInfo.student_id}</TableRowColumn>
+            </TableRow>
+
+            <TableRow>
               <TableRowColumn style={{ fontSize: 16, width: 150 }} >Name :</TableRowColumn>
               <TableRowColumn style={{ fontSize: 16, }} >{this.props.userInfo.name}</TableRowColumn>
             </TableRow>
